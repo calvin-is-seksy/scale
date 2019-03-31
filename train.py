@@ -3,9 +3,14 @@ from keras.models import Sequential
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers.core import Flatten, Dense
-from keras.layers import ReLU
-from keras.optimizers import Adam
+from keras.layers import ReLU, Dropout
 import keras.backend as K
+from keras.models import model_from_json
+
+np.random.seed(7)
+
+def relu6(x):
+    return K.relu(x, max_value=6)
 
 
 def euclidean_distance_loss(y_true, y_pred):
@@ -15,6 +20,7 @@ def euclidean_distance_loss(y_true, y_pred):
 def circleModel():
     model = Sequential()
     model.add(Conv2D(24, (7, 7),
+                     input_shape=(200,200,1),
                      strides=(2, 2),
                      padding='valid',
                      kernel_initializer='he_normal',
@@ -37,6 +43,21 @@ def circleModel():
     model.add(Dense(500))
     model.add(ReLU())
 
+    model.add(Dense(3))
+
+    return model
+
+def model2():
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size=(3, 3),
+                     activation='relu',
+                     input_shape=(200,200,1)))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(3))
 
     return model
@@ -64,9 +85,18 @@ def build_data():
 
 def train():
     trainX, trainY = build_data()
-    model = circleModel()
+    # model = circleModel()
+    model = model2()
     model.compile(loss=euclidean_distance_loss, optimizer='Adam')
-    model.fit(x=trainX, y=trainY, epochs=5, verbose=1, validation_split=0.1)
+    model.fit(x=trainX, y=trainY, batch_size=25, epochs=5, verbose=1, validation_split=0.1)
+
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open("models/model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights("models/model.h5")
+    print("Saved model to disk")
 
 if __name__ == "__main__":
     train()
