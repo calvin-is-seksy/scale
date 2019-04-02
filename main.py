@@ -2,6 +2,9 @@ import numpy as np
 from shapely.geometry.point import Point
 from skimage.draw import circle_perimeter_aa
 import matplotlib.pyplot as plt
+from keras.models import model_from_json
+
+from train import *
 
 
 def draw_circle(img, row, col, rad):
@@ -30,8 +33,20 @@ def noisy_circle(size, radius, noise):
 
 
 def find_circle(img):
-    # Fill in this function
-    return 100, 100, 30
+    # load json and create model
+    json_file = open('models/model.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights("models/model.h5")
+    print("Loaded model from disk")
+
+    # evaluate loaded model on test data
+    loaded_model.compile(loss=euclidean_distance_loss, optimizer='Adam')
+    y = loaded_model.predict(img)
+
+    return y
 
 
 def iou(params0, params1):
