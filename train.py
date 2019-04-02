@@ -6,12 +6,13 @@ from keras.layers.core import Flatten, Dense
 from keras.layers import ReLU, Dropout
 import keras.backend as K
 from keras.models import model_from_json
+from keras.callbacks import ModelCheckpoint
+from tqdm import tqdm 
+
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 np.random.seed(7)
-
-def relu6(x):
-    return K.relu(x, max_value=6)
-
 
 def euclidean_distance_loss(y_true, y_pred):
     return K.sqrt(K.sum(K.square(y_pred - y_true), axis=-1))
@@ -63,7 +64,7 @@ def model2():
     return model
 
 def build_data():
-    numSamples = 1000
+    numSamples = 100000
 
     size = 200
     rad = 50
@@ -72,7 +73,7 @@ def build_data():
     trainX = []
     trainY = []
 
-    for _ in range(numSamples):
+    for _ in tqdm(range(numSamples)):
         params, img = noisy_circle(size, rad, noise)
         trainX.append(img)
         trainY.append(params)
@@ -81,6 +82,8 @@ def build_data():
     trainX = trainX.reshape(trainX.shape[0], size, size, 1)
     trainY = np.array(trainY, dtype=np.uint8)
 
+    print('Training data generated')
+
     return trainX, trainY
 
 def train():
@@ -88,7 +91,15 @@ def train():
     # model = circleModel()
     model = model2()
     model.compile(loss=euclidean_distance_loss, optimizer='Adam')
-    model.fit(x=trainX, y=trainY, batch_size=25, epochs=5, verbose=1, validation_split=0.1)
+
+    # checkpoint
+    filepath="checkpoints/weights-improvement-{epoch:02d}-{val_loss:.2f}.hdf5"
+    checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+    callbacks_list = [checkpoint]
+
+    model.fit(x=trainX, y=trainY, batch_size=50, epochs=12, verbose=1, callbacks=callbacks_list, validation_split=0.15)
+
+    print('Done training! Saving model')
 
     # serialize model to JSON
     model_json = model.to_json()
