@@ -66,7 +66,12 @@ def main():
     results = []
     for _ in range(1000):
         params, img = noisy_circle(200, 50, 2)
+        img = img.reshape(1, 200, 200, 1)
         detected = find_circle(img)
+        print("params: {}, detected: {}".format(params, detected))
         results.append(iou(params, detected))
     results = np.array(results)
     print((results > 0.7).mean())
+
+if __name__ == "__main__":
+    main()
