@@ -32,7 +32,7 @@ def noisy_circle(size, radius, noise):
     return (row, col, rad), img
 
 
-def find_circle(img):
+def load_model():
     # load json and create model
     json_file = open('models/model.json', 'r')
     loaded_model_json = json_file.read()
@@ -41,12 +41,15 @@ def find_circle(img):
     # load weights into new model
     loaded_model.load_weights("models/model.h5")
     print("Loaded model from disk")
+    return loaded_model
 
+
+def find_circle(img, loaded_model):
     # evaluate loaded model on test data
     loaded_model.compile(loss=euclidean_distance_loss, optimizer='Adam')
     y = loaded_model.predict(img)
 
-    return y
+    return y[0]
 
 
 def iou(params0, params1):
@@ -64,10 +67,11 @@ def iou(params0, params1):
 
 def main():
     results = []
+    model = load_model()
     for _ in range(1000):
         params, img = noisy_circle(200, 50, 2)
         img = img.reshape(1, 200, 200, 1)
-        detected = find_circle(img)
+        detected = tuple(find_circle(img, model))
         print("params: {}, detected: {}".format(params, detected))
         results.append(iou(params, detected))
     results = np.array(results)
