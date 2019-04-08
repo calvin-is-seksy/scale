@@ -3,14 +3,14 @@ from keras.models import Sequential
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers.core import Flatten, Dense
-from keras.layers import ReLU, Dropout
+from keras.layers import Dropout
 import keras.backend as K
 from keras.models import model_from_json
 from keras.callbacks import ModelCheckpoint
 from tqdm import tqdm 
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 np.random.seed(7)
 
@@ -76,17 +76,18 @@ def model3():
     model.add(Conv2D(128, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
+    model.add(Dropout(0.5))
     model.add(Flatten())
 
-    model.add(Dense(1024))
-    model.add(Dense(256))
-    model.add(Dense(64))
+    model.add(Dense(1024, activation='relu'))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dense(64, activation='relu'))
     model.add(Dense(3))
 
     return model
 
 def build_data():
-    numSamples = 100000
+    numSamples = 60000
 
     size = 200
     rad = 50
@@ -111,7 +112,7 @@ def build_data():
 def train():
     trainX, trainY = build_data()
     # model = circleModel()
-    model = model2()
+    model = model3()
     model.compile(loss=euclidean_distance_loss, optimizer='Adam')
 
     # checkpoint
@@ -119,7 +120,7 @@ def train():
     checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
 
-    model.fit(x=trainX, y=trainY, batch_size=50, epochs=12, verbose=1, callbacks=callbacks_list, validation_split=0.15)
+    model.fit(x=trainX, y=trainY, batch_size=50, epochs=100, verbose=1, callbacks=callbacks_list, validation_split=0.15)
 
     print('Done training! Saving model')
 
