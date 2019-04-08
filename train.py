@@ -18,7 +18,7 @@ def euclidean_distance_loss(y_true, y_pred):
     return K.sqrt(K.sum(K.square(y_pred - y_true), axis=-1))
 
 
-def circleModel():
+def model1():
     model = Sequential()
     model.add(Conv2D(24, (7, 7),
                      input_shape=(200,200,1),
@@ -111,8 +111,12 @@ def build_data():
 
 def train():
     trainX, trainY = build_data()
+<<<<<<< HEAD
     # model = circleModel()
     model = model3()
+=======
+    model = model2()
+>>>>>>> 118cd9c5cc49a1c5682544c509f63a953e3b6d84
     model.compile(loss=euclidean_distance_loss, optimizer='Adam')
 
     # checkpoint
