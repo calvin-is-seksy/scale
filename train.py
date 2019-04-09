@@ -111,12 +111,7 @@ def build_data():
 
 def train():
     trainX, trainY = build_data()
-<<<<<<< HEAD
-    # model = circleModel()
     model = model3()
-=======
-    model = model2()
->>>>>>> 118cd9c5cc49a1c5682544c509f63a953e3b6d84
     model.compile(loss=euclidean_distance_loss, optimizer='Adam')
 
     # checkpoint
